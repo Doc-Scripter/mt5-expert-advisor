@@ -314,6 +314,20 @@ void DrawEMALine()
       return;
    }
    
+   // Define the number of candles to draw EMA for (300 for proper trend analysis)
+   const int REQUIRED_CANDLES = 300;
+   
+   // Ensure we have enough EMA values
+   if(ArraySize(g_ema.values) < REQUIRED_CANDLES)
+   {
+      // Resize and update the EMA values array
+      if(!UpdateEMAValues(REQUIRED_CANDLES))
+      {
+         Print("DrawEMALine: Failed to update EMA values for ", REQUIRED_CANDLES, " candles");
+         return;
+      }
+   }
+   
    int available = ArraySize(g_ema.values);
    if(available < 2)
    {
@@ -325,10 +339,15 @@ void DrawEMALine()
    ObjectsDeleteAll(0, "EMA_Line");
    
    // Draw EMA line segments connecting available points
+   // Limit to REQUIRED_CANDLES or available candles, whichever is smaller
+   int candles_to_draw = MathMin(available, REQUIRED_CANDLES);
+   
    datetime time1, time2;
    double price1, price2;
    
-   for(int i = 1; i < available; i++)
+   Print("DrawEMALine: Drawing EMA for ", candles_to_draw, " candles");
+   
+   for(int i = 1; i < candles_to_draw; i++)
    {
       string objName = "EMA_Line_" + IntegerToString(i);
       
